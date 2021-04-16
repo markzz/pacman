@@ -154,6 +154,9 @@ foreach member : [
     ['struct statvfs', 'f_flag', '''#include <sys/statvfs.h>'''],
     ['struct statfs', 'f_flags', '''#include <sys/param.h>
                                     #include <sys/mount.h>'''],
+    ['struct statvfs', 'f_mntonname', '''#include <sys/statvfs.h>'''],
+    ['struct statfs', 'f_mntonname', '''#include <sys/param.h>
+                                        #include <sys/mount.h>'''],
   ]
   have = cc.has_member(member[0], member[1], prefix : member[2])
   conf.set('HAVE_' + '_'.join([member[0], member[1]]).underscorify().to_upper(), have)
@@ -174,9 +177,13 @@ foreach type : [
   endif
 endforeach
 
-if conf.has('HAVE_STRUCT_STATVFS_F_FLAG')
+if conf.get('HAVE_STRUCT_STATVFS_F_FLAG', false)
   conf.set('FSSTATSTYPE', 'struct statvfs')
-elif conf.has('HAVE_STRUCT_STATFS_F_FLAGS')
+elif conf.get('HAVE_STRUCT_STATFS_F_FLAGS', false)
+  conf.set('FSSTATSTYPE', 'struct statfs')
+endif
+
+if not conf.get('HAVE_STRUCT_STATVFS_F_MNTONNAME', false) and conf.get('HAVE_STRUCT_STATFS_F_MNTONNAME', false)
   conf.set('FSSTATSTYPE', 'struct statfs')
 endif
 
